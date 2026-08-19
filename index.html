@@ -25,17 +25,19 @@
   .panel{background:var(--card);border:1px solid var(--border);border-radius:0 0 14px 14px;padding:14px;}
   .hidden{display:none !important;}
 
-  .personRow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px;}
+  .personRow{display:flex;flex-direction:column;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px;}
+  .personRow .nameRow{display:flex;align-items:center;gap:8px;}
   .personRow .name{flex:1;min-width:0;}
-  .personRow input[type=text]{width:100%;background:transparent;border:none;color:var(--text);font-size:1rem;font-weight:600;padding:4px 0;}
+  .personRow input[type=text]{width:100%;background:transparent;border:none;color:var(--text);font-size:1.05rem;font-weight:700;padding:4px 0;}
   .counters{display:flex;flex-direction:column;gap:4px;}
   .counterLine{display:flex;align-items:center;gap:6px;}
-  .counterLine .drinkLabel{font-size:.72rem;color:var(--muted);width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .btnCount{width:34px;height:34px;border-radius:8px;border:none;font-size:1.1rem;font-weight:700;cursor:pointer;}
+  .counterLine .drinkLabel{font-size:.75rem;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .btnCount{width:34px;height:34px;flex:none;border-radius:8px;border:none;font-size:1.1rem;font-weight:700;cursor:pointer;}
   .btnPlus{background:var(--accent);color:#221812;}
   .btnMinus{background:#4a3a2e;color:var(--text);}
-  .tally{min-width:26px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;}
-  .rowTotal{text-align:right;font-size:.85rem;color:var(--accent);min-width:64px;}
+  .tally{width:26px;flex:none;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;}
+  .rowBottom{display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--border);}
+  .rowTotal{text-align:right;font-size:.9rem;color:var(--accent);font-weight:700;}
   .delPerson{background:none;border:none;color:var(--danger);font-size:1.2rem;cursor:pointer;padding:4px 6px;}
 
   .addPersonBar{display:flex;gap:8px;margin:10px 0 4px;}
@@ -220,6 +222,9 @@ function renderPeople(){
     const row = document.createElement('div');
     row.className = 'personRow';
 
+    const nameRow = document.createElement('div');
+    nameRow.className = 'nameRow';
+
     const nameDiv = document.createElement('div');
     nameDiv.className = 'name';
     const nameInput = document.createElement('input');
@@ -279,10 +284,16 @@ function renderPeople(){
       }
     });
 
-    row.appendChild(nameDiv);
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'rowBottom';
+    bottomRow.appendChild(totalDiv);
+
+    nameRow.appendChild(nameDiv);
+    nameRow.appendChild(delBtn);
+
+    row.appendChild(nameRow);
     row.appendChild(countersDiv);
-    row.appendChild(totalDiv);
-    row.appendChild(delBtn);
+    row.appendChild(bottomRow);
     wrap.appendChild(row);
   }
   const grand = state.people.reduce((s,p)=>s+personTotal(p),0);
