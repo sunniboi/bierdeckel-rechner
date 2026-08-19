@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bierdeckel Rechner</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#221812">
+<style>
+  :root{
+    --bg:#1b1410; --card:#2a201a; --card2:#332720; --accent:#e8a33d; --accent2:#c97b1f;
+    --text:#f3e9dd; --muted:#b8a692; --danger:#c14b4b; --good:#4caf6b; --border:#4a3a2e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);padding-bottom:80px;}
+  header{background:linear-gradient(135deg,#3a2a1c,#221812);padding:18px 16px 14px;text-align:center;border-bottom:3px solid var(--accent2);position:sticky;top:0;z-index:10;}
+  header h1{margin:0;font-size:1.3rem;letter-spacing:.5px;}
+  header p{margin:4px 0 0;color:var(--muted);font-size:.8rem;}
+  .tabs{display:flex;gap:6px;padding:10px 12px 0;}
+  .tab{flex:1;padding:10px;text-align:center;border-radius:10px 10px 0 0;background:var(--card2);color:var(--muted);font-size:.85rem;cursor:pointer;border:1px solid var(--border);border-bottom:none;}
+  .tab.active{background:var(--card);color:var(--accent);font-weight:600;}
+  main{padding:0 12px 12px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:0 0 14px 14px;padding:14px;}
+  .hidden{display:none !important;}
+
+  .personRow{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px;}
+  .personRow .name{flex:1;min-width:0;}
+  .personRow input[type=text]{width:100%;background:transparent;border:none;color:var(--text);font-size:1rem;font-weight:600;padding:4px 0;}
+  .counters{display:flex;flex-direction:column;gap:4px;}
+  .counterLine{display:flex;align-items:center;gap:6px;}
+  .counterLine .drinkLabel{font-size:.72rem;color:var(--muted);width:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .btnCount{width:34px;height:34px;border-radius:8px;border:none;font-size:1.1rem;font-weight:700;cursor:pointer;}
+  .btnPlus{background:var(--accent);color:#221812;}
+  .btnMinus{background:#4a3a2e;color:var(--text);}
+  .tally{min-width:26px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;}
+  .rowTotal{text-align:right;font-size:.85rem;color:var(--accent);min-width:64px;}
+  .delPerson{background:none;border:none;color:var(--danger);font-size:1.2rem;cursor:pointer;padding:4px 6px;}
+
+  .addPersonBar{display:flex;gap:8px;margin:10px 0 4px;}
+  .addPersonBar input{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:1rem;}
+  .addPersonBar button{padding:12px 16px;border-radius:10px;border:none;background:var(--accent);color:#221812;font-weight:700;font-size:1rem;}
+
+  .grandTotal{margin-top:14px;padding:14px;border-radius:12px;background:linear-gradient(135deg,#3a2a1c,#2a1d13);border:1px solid var(--accent2);display:flex;justify-content:space-between;align-items:center;}
+  .grandTotal .label{color:var(--muted);font-size:.85rem;}
+  .grandTotal .value{font-size:1.6rem;font-weight:800;color:var(--accent);}
+
+  .priceRow{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px;}
+  .priceRow input[type=text]{flex:1;background:transparent;border:none;color:var(--text);font-size:1rem;font-weight:600;}
+  .priceRow .priceInputWrap{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:8px;padding:4px 8px;}
+  .priceRow input[type=number]{width:64px;background:transparent;border:none;color:var(--accent);font-size:1rem;font-weight:700;text-align:right;}
+  .priceRow .delDrink{background:none;border:none;color:var(--danger);font-size:1.2rem;cursor:pointer;}
+  .addDrinkBar{display:flex;gap:8px;margin-top:10px;}
+  .addDrinkBar input{padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);}
+  .addDrinkBar input[type=text]{flex:1;}
+  .addDrinkBar input[type=number]{width:80px;}
+  .addDrinkBar button{padding:10px 14px;border-radius:10px;border:none;background:var(--accent);color:#221812;font-weight:700;}
+
+  .scanBox{border:2px dashed var(--border);border-radius:14px;padding:16px;text-align:center;color:var(--muted);margin-bottom:12px;}
+  .scanBox button{margin-top:8px;padding:12px 18px;border-radius:10px;border:none;background:var(--accent);color:#221812;font-weight:700;font-size:.95rem;}
+  video{width:100%;border-radius:10px;background:#000;display:block;margin-top:10px;}
+  canvas{display:none;}
+  .ocrResult{margin-top:10px;padding:10px;background:var(--card2);border-radius:10px;font-size:.85rem;color:var(--muted);white-space:pre-wrap;max-height:160px;overflow:auto;}
+  .langRow{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px;font-size:.8rem;color:var(--muted);}
+  select{background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px;}
+  .note{font-size:.78rem;color:var(--muted);line-height:1.4;margin-top:8px;}
+  .warn{color:var(--accent);}
+  .footer-actions{display:flex;gap:8px;margin-top:14px;}
+  .footer-actions button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:.85rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍺 Bierdeckel Rechner</h1>
+  <p>Strichliste führen · Preise selbst festlegen · Summe live</p>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="liste">Strichliste</div>
+  <div class="tab" data-tab="preise">Preise</div>
+  <div class="tab" data-tab="scan">Foto-Scan</div>
+</div>
+
+<main>
+  <!-- LISTE -->
+  <section id="tab-liste" class="panel">
+    <div class="addPersonBar">
+      <input id="newPersonName" type="text" placeholder="Name eingeben (jede Sprache/Schrift möglich)…">
+      <button id="addPersonBtn">+ Person</button>
+    </div>
+    <div id="peopleList"></div>
+    <div class="grandTotal">
+      <div class="label">Gesamtsumme</div>
+      <div class="value" id="grandTotalValue">0,00 €</div>
+    </div>
+    <div class="footer-actions">
+      <button id="resetAllBtn">Alles zurücksetzen</button>
+      <button id="resetTallyBtn">Nur Striche zurücksetzen</button>
+    </div>
+  </section>
+
+  <!-- PREISE -->
+  <section id="tab-preise" class="panel hidden">
+    <div id="drinksList"></div>
+    <div class="addDrinkBar">
+      <input id="newDrinkName" type="text" placeholder="Getränk (z.B. Bier)">
+      <input id="newDrinkPrice" type="number" step="0.10" placeholder="€">
+      <button id="addDrinkBtn">+</button>
+    </div>
+    <div class="note">Preise können jederzeit geändert werden — tippe einfach die Zahl an und überschreibe sie. Änderungen wirken sich sofort auf die Summe aus.</div>
+  </section>
+
+  <!-- SCAN -->
+  <section id="tab-scan" class="panel hidden">
+    <div class="scanBox" id="scanBoxIdle">
+      Bierdeckel mit der Handy-Kamera fotografieren.<br>
+      <span class="note">Die Texterkennung (OCR) läuft lokal im Browser (WASM) und hilft bei <b>gedruckter/deutlicher</b> Handschrift und Namen. Strichlisten (⁘⁘⁘) sind für OCR generell unzuverlässig — dafür ist die Tap-Zählung im Tab „Strichliste“ die verlässlichere Methode.</span>
+      <br><button id="startCamBtn">📷 Kamera starten</button>
+      <div class="langRow">
+        Sprache: <select id="ocrLang">
+          <option value="deu">Deutsch</option>
+          <option value="eng">Englisch</option>
+          <option value="deu+eng">Deutsch + Englisch</option>
+          <option value="fra">Französisch</option>
+          <option value="ita">Italienisch</option>
+          <option value="spa">Spanisch</option>
+          <option value="tur">Türkisch</option>
+          <option value="pol">Polnisch</option>
+          <option value="rus">Russisch</option>
+          <option value="ara">Arabisch</option>
+          <option value="chi_sim">Chinesisch (vereinfacht)</option>
+          <option value="jpn">Japanisch</option>
+        </select>
+      </div>
+      <div class="note">Für die erste Nutzung einer Sprache wird das OCR-Sprachpaket einmalig heruntergeladen (Internet nötig); danach funktioniert es aus dem Zwischenspeicher auch offline.</div>
+    </div>
+    <video id="camVideo" autoplay playsinline class="hidden"></video>
+    <button id="captureBtn" class="hidden" style="margin-top:8px;width:100%;padding:12px;border-radius:10px;border:none;background:var(--good);color:#101a12;font-weight:700;">📸 Foto aufnehmen &amp; erkennen</button>
+    <canvas id="camCanvas"></canvas>
+    <div id="ocrStatus" class="note"></div>
+    <div id="ocrResult" class="ocrResult hidden"></div>
+    <div id="ocrApplyRow" class="hidden" style="margin-top:8px;">
+      <button id="applyOcrBtn" style="width:100%;padding:10px;border-radius:10px;border:none;background:var(--accent);color:#221812;font-weight:700;">Erkannten Text als neue Person übernehmen</button>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+const STORAGE_KEY = "bierdeckel_state_v1";
+
+let state = loadState();
+
+function defaultState(){
+  return {
+    drinks: [
+      {id: uid(), name: "Bier", price: 1.50},
+      {id: uid(), name: "Cola", price: 2.00},
+      {id: uid(), name: "Schnaps", price: 2.50}
+    ],
+    people: [] // {id, name, counts: {drinkId: n}}
+  };
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if(!parsed.drinks || !parsed.people) return defaultState();
+    return parsed;
+  }catch(e){ return defaultState(); }
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function fmtEuro(n){
+  return n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('tab-'+tab.dataset.tab).classList.remove('hidden');
+  });
+});
+
+// ---------- Rendering: People / Strichliste ----------
+function personTotal(person){
+  let sum = 0;
+  for(const d of state.drinks){
+    const n = person.counts[d.id] || 0;
+    sum += n * d.price;
+  }
+  return sum;
+}
+
+function renderPeople(){
+  const wrap = document.getElementById('peopleList');
+  wrap.innerHTML = '';
+  for(const p of state.people){
+    const row = document.createElement('div');
+    row.className = 'personRow';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'name';
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = p.name;
+    nameInput.addEventListener('input', ()=>{ p.name = nameInput.value; saveState(); });
+    nameDiv.appendChild(nameInput);
+
+    const countersDiv = document.createElement('div');
+    countersDiv.className = 'counters';
+    for(const d of state.drinks){
+      const line = document.createElement('div');
+      line.className = 'counterLine';
+
+      const label = document.createElement('div');
+      label.className = 'drinkLabel';
+      label.textContent = d.name;
+
+      const minus = document.createElement('button');
+      minus.className = 'btnCount btnMinus';
+      minus.textContent = '–';
+      minus.addEventListener('click', ()=>{
+        p.counts[d.id] = Math.max(0, (p.counts[d.id]||0) - 1);
+        saveState(); renderPeople();
+      });
+
+      const tally = document.createElement('div');
+      tally.className = 'tally';
+      tally.textContent = p.counts[d.id] || 0;
+
+      const plus = document.createElement('button');
+      plus.className = 'btnCount btnPlus';
+      plus.textContent = '+';
+      plus.addEventListener('click', ()=>{
+        p.counts[d.id] = (p.counts[d.id]||0) + 1;
+        saveState(); renderPeople();
+      });
+
+      line.appendChild(label);
+      line.appendChild(minus);
+      line.appendChild(tally);
+      line.appendChild(plus);
+      countersDiv.appendChild(line);
+    }
+
+    const totalDiv = document.createElement('div');
+    totalDiv.className = 'rowTotal';
+    totalDiv.textContent = fmtEuro(personTotal(p));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delPerson';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', ()=>{
+      if(confirm(`"${p.name}" wirklich entfernen?`)){
+        state.people = state.people.filter(x=>x.id!==p.id);
+        saveState(); renderPeople();
+      }
+    });
+
+    row.appendChild(nameDiv);
+    row.appendChild(countersDiv);
+    row.appendChild(totalDiv);
+    row.appendChild(delBtn);
+    wrap.appendChild(row);
+  }
+  const grand = state.people.reduce((s,p)=>s+personTotal(p),0);
+  document.getElementById('grandTotalValue').textContent = fmtEuro(grand);
+}
+
+document.getElementById('addPersonBtn').addEventListener('click', addPersonFromInput);
+document.getElementById('newPersonName').addEventListener('keydown', e=>{
+  if(e.key==='Enter') addPersonFromInput();
+});
+function addPersonFromInput(){
+  const input = document.getElementById('newPersonName');
+  const name = input.value.trim();
+  if(!name) return;
+  state.people.push({id: uid(), name, counts: {}});
+  input.value = '';
+  saveState(); renderPeople();
+}
+
+document.getElementById('resetAllBtn').addEventListener('click', ()=>{
+  if(confirm('Wirklich ALLES löschen (Personen, Striche, eigene Getränke)?')){
+    state = defaultState();
+    saveState(); renderPeople(); renderDrinks();
+  }
+});
+document.getElementById('resetTallyBtn').addEventListener('click', ()=>{
+  if(confirm('Alle Striche auf 0 setzen (Namen & Preise bleiben erhalten)?')){
+    state.people.forEach(p=>p.counts = {});
+    saveState(); renderPeople();
+  }
+});
+
+// ---------- Rendering: Drinks / Preise ----------
+function renderDrinks(){
+  const wrap = document.getElementById('drinksList');
+  wrap.innerHTML = '';
+  for(const d of state.drinks){
+    const row = document.createElement('div');
+    row.className = 'priceRow';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = d.name;
+    nameInput.addEventListener('input', ()=>{ d.name = nameInput.value; saveState(); renderPeople(); });
+
+    const priceWrap = document.createElement('div');
+    priceWrap.className = 'priceInputWrap';
+    const priceInput = document.createElement('input');
+    priceInput.type = 'number';
+    priceInput.step = '0.10';
+    priceInput.value = d.price;
+    priceInput.addEventListener('input', ()=>{
+      d.price = parseFloat(priceInput.value) || 0;
+      saveState(); renderPeople();
+    });
+    const euro = document.createElement('span');
+    euro.textContent = '€';
+    priceWrap.appendChild(priceInput);
+    priceWrap.appendChild(euro);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delDrink';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', ()=>{
+      if(confirm(`Getränk "${d.name}" wirklich entfernen?`)){
+        state.drinks = state.drinks.filter(x=>x.id!==d.id);
+        state.people.forEach(p=>{ delete p.counts[d.id]; });
+        saveState(); renderDrinks(); renderPeople();
+      }
+    });
+
+    row.appendChild(nameInput);
+    row.appendChild(priceWrap);
+    row.appendChild(delBtn);
+    wrap.appendChild(row);
+  }
+}
+
+document.getElementById('addDrinkBtn').addEventListener('click', ()=>{
+  const nameInput = document.getElementById('newDrinkName');
+  const priceInput = document.getElementById('newDrinkPrice');
+  const name = nameInput.value.trim();
+  const price = parseFloat(priceInput.value) || 0;
+  if(!name) return;
+  state.drinks.push({id: uid(), name, price});
+  nameInput.value=''; priceInput.value='';
+  saveState(); renderDrinks(); renderPeople();
+});
+
+// ---------- Camera + OCR ----------
+let stream = null;
+const video = document.getElementById('camVideo');
+const canvas = document.getElementById('camCanvas');
+
+document.getElementById('startCamBtn').addEventListener('click', async ()=>{
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+    video.srcObject = stream;
+    video.classList.remove('hidden');
+    document.getElementById('captureBtn').classList.remove('hidden');
+    document.getElementById('scanBoxIdle').querySelector('#startCamBtn').textContent = '📷 Kamera läuft…';
+  }catch(err){
+    document.getElementById('ocrStatus').textContent = 'Kamera-Zugriff nicht möglich: ' + err.message;
+  }
+});
+
+document.getElementById('captureBtn').addEventListener('click', async ()=>{
+  const status = document.getElementById('ocrStatus');
+  const resultBox = document.getElementById('ocrResult');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  status.textContent = 'Erkenne Text (lokal, kann beim ersten Mal dauern)…';
+  resultBox.classList.add('hidden');
+  document.getElementById('ocrApplyRow').classList.add('hidden');
+
+  const lang = document.getElementById('ocrLang').value;
+  try{
+    const { data } = await Tesseract.recognize(canvas, lang, {
+      logger: m => {
+        if(m.status && typeof m.progress === 'number'){
+          status.textContent = `${m.status} … ${Math.round(m.progress*100)}%`;
+        }
+      }
+    });
+    const text = (data.text || '').trim();
+    status.textContent = 'Fertig. Bitte Ergebnis prüfen — OCR kann Fehler machen, besonders bei Handschrift.';
+    resultBox.textContent = text || '(kein Text erkannt)';
+    resultBox.classList.remove('hidden');
+    if(text){
+      document.getElementById('ocrApplyRow').classList.remove('hidden');
+      document.getElementById('applyOcrBtn').onclick = ()=>{
+        const firstLine = text.split('\n').map(l=>l.trim()).filter(Boolean)[0] || 'Neue Person';
+        state.people.push({id: uid(), name: firstLine, counts:{}});
+        saveState(); renderPeople();
+        document.querySelector('.tab[data-tab="liste"]').click();
+      };
+    }
+  }catch(err){
+    status.textContent = 'OCR-Fehler: ' + err.message;
+  }
+});
+
+// ---------- Init ----------
+renderDrinks();
+renderPeople();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
